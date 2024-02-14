@@ -1,19 +1,20 @@
-import { init } from "create-react-app/createReactApp";
+
+import React, { useEffect } from 'react';
 import './StyleMap.css';
-function Map()
-{
-    function initMap()
-    {
+
+const Map = () => {
+    let map, directionsService, directionsDisplay, currentLocation;
+
+    function initMap() {
         currentLocation = { lat: 0, lng: 0 };
-        map = new google.maps.Map(document.getElementById('map'), 
-        {
+        map = new window.google.maps.Map(document.getElementById('map'), {
             center: currentLocation,
             zoom: 18
         });
-        directionsService = new google.maps.DirectionsService();
-        directionsDisplay = new google.maps.DirectionsRenderer();
+        directionsService = new window.google.maps.DirectionsService();
+        directionsDisplay = new window.google.maps.DirectionsRenderer();
         directionsDisplay.setMap(map);
-  
+
         navigator.geolocation.getCurrentPosition(function (position) {
             currentLocation = {
                 lat: position.coords.latitude,
@@ -22,95 +23,94 @@ function Map()
 
             map.setCenter(currentLocation);
 
-            var marker = new google.maps.Marker({
+            var marker = new window.google.maps.Marker({
                 position: currentLocation,
                 map: map,
                 title: 'Current Location'
             });
         });
-
-
     }
-   
-    // Initialize Google Places Autocomplete
-    function initAutocomplete() {
-        const searchInput = document.getElementById('destination');
-        const autocomplete = new google.maps.places.Autocomplete(searchInput);
-    }
-
-    // Load Google Maps API script
-    function loadScript() {
+    function loadScript(url, callback) {
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDfJ4KrjD_b0b5wKUMKZFTQU6Erac6Hq10&libraries=places&callback=initAutocomplete`;
+        script.src = url;
+        script.onload = callback;
+        script.onerror = () => {
+            console.error(`Error loading script: ${url}`);
+        };
         document.body.appendChild(script);
     }
 
-    // Call loadScript function when the page finishes loading
-    window.onload = loadScript;
+    useEffect(() => {
+        loadScript(`https://maps.googleapis.com/maps/api/js?key=AIzaSyDfJ4KrjD_b0b5wKUMKZFTQU6Erac6Hq10&callback=initMap`, () => {
+            initMap();
+        });
+
+        loadScript(`https://maps.googleapis.com/maps/api/js?key=AIzaSyDfJ4KrjD_b0b5wKUMKZFTQU6Erac6Hq10&libraries=places&callback=initAutocomplete`, () => {
+            // Initialize autocomplete after the script loads
+            initAutocomplete();
+        });
+    }, []);
+
+    function calculateAndDisplayRoute(directionsService, directionsRenderer, start, end) {
+        directionsService.route({
+            origin: start,
+            destination: end,
+            travelMode: window.google.maps.TravelMode.DRIVING
+        }, (response, status) => {
+            if (status === "OK") {
+                directionsRenderer.setDirections(response);
+                showTurns(response);
+            } else {
+                window.alert("Directions request failed due to " + status);
+            }
+        });
+    }
+
+
+    function initAutocomplete() {
+        const searchInput = document.getElementById('destination');
+        const autocomplete = new window.google.maps.places.Autocomplete(searchInput);
+    }
 
     function calculateRoute() {
         var destination = document.getElementById('destination').value;
 
         var request = {
-            origin: /*map.getCenter()*/currentLocation,
+            origin: currentLocation,
             destination: destination,
             travelMode: 'DRIVING',
-   
             drivingOptions: {
-            departureTime: new Date(Date.now()),
+                departureTime: new Date(Date.now()),
             }
         };
 
         directionsService.route(request, function (result, status) {
-            if (status == 'OK') {
+            if (status === 'OK') {
                 directionsDisplay.setDirections(result);
                 showTravelTime();
-                const directionsRenderer = new google.maps.DirectionsRenderer();
-                calculateAndDisplayRoute(directionsService, directionsRenderer, currentLocation, destination);
+                calculateAndDisplayRoute(directionsService, directionsDisplay, currentLocation, destination);
             }
         });
-
-
-
     }
     function showTravelTime() {
         var dest = document.getElementById('destination').value;
 
         var request = {
-            origin:map.getCenter(),
+            origin: map.getCenter(),
             destination: dest,
             travelMode: 'DRIVING'
         };
 
         directionsService.route(request, function (result, status) {
-            if (status == 'OK') {
+            if (status === 'OK') {
                 var route = result.routes[0];
                 var duration = route.legs[0].duration.text;
 
-                travelTime.innerHTML = "Estimated Travel Time: " + duration;
-
+                document.getElementById('travelTime').innerHTML = "Estimated Travel Time: " + duration;
             }
         });
     }
-    function calculateAndDisplayRoute(directionsService, directionsRenderer, start, end) {
-        directionsService.route(
-            {
-                origin: start,
-                destination: end,
-                travelMode: google.maps.TravelMode.DRIVING
-            },
-            (response, status) => {
-                if (status === "OK") {
-                    directionsRenderer.setDirections(response);
-                    showTurns(response);
-                } else {
-                    window.alert("Directions request failed due to " + status);
-                }
-            }
-        );
-    }
-    function showTurns(response)
-    {
+    function showTurns(response) {
         const steps = response.routes[0].legs[0].steps;
         const directionsContainer = document.getElementById("directions-container");
 
@@ -123,19 +123,25 @@ function Map()
 
         directionsContainer.innerHTML = html;
     }
-    initMap();
-return(
-    <>
-    <h1>Car Route Finder</h1>
-    <div>
-        <label for="destination">Enter Destination:</label>
-        <input type="text" id="destination" placeholder="Search places..."/>
-        <button onclick="calculateRoute()">Calculate Route</button>
-    </div>
-    <div id="directions-container"></div>
-    <div id="travelTime"></div>
-    <div id="map"></div>
-    </>
-);
+    
+
+   
+    // Rest of the functions remain the same
+
+    return (
+        <>
+            <h1>Car Route Finder</h1>
+            <div>
+                <label htmlFor="destination">Enter Destination:</label>
+                <input type="text" id="destination" placeholder="Search places..." />
+                <button onClick={calculateRoute}>Calculate Route</button>
+            </div>
+            <div id="directions-container"></div>
+            <div id="travelTime"></div>
+            <div id="map"></div>
+           
+        </>
+    );
 };
-export default routeCalculation;
+
+export default Map;
