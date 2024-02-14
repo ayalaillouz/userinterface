@@ -120,13 +120,30 @@ const Map = () => {
             const distance = steps[i].distance.text;
             html += `<p>${instruction} (${distance})</p>`;
         }
+{  /*    
+ // Accessing all coordinates along the entire track
+const selectedRoute = response.routes[0];
+const allCoordinates = [];
+selectedRoute.legs.forEach(leg => {
+    leg.steps.forEach(step => {
+        step.path.forEach(point => {
+            allCoordinates.push({
+                lat: point.lat(),
+                lng: point.lng()
+            });
+        });
+    });
+});
+
+// Displaying all coordinates
+console.log(allCoordinates);*/}
 
         directionsContainer.innerHTML = html;
     }
     
 
    
-    // Rest of the functions remain the same
+
 
     return (
         <>
