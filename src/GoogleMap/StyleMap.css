@@ -1,0 +1,9 @@
+#map {
+    height: 600px;
+    width: 100%;
+}
+
+#destination {
+    width: 300px;
+    padding: 10px;
+}
