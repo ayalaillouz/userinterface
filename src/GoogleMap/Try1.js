@@ -2,10 +2,12 @@
 import React, { useEffect } from 'react';
 import './StyleMap.css';
 
-const Map = () => {
+const Map = () => 
+{
     let map, directionsService, directionsDisplay, currentLocation;
 
-    function initMap() {
+    function initMap() 
+    {
         currentLocation = { lat: 0, lng: 0 };
         map = new window.google.maps.Map(document.getElementById('map'), {
             center: currentLocation,
@@ -110,38 +112,110 @@ const Map = () => {
             }
         });
     }
-    function showTurns(response) {
-        const steps = response.routes[0].legs[0].steps;
-        const directionsContainer = document.getElementById("directions-container");
-
-        let html = "";
-        for (let i = 0; i < steps.length; i++) {
-            const instruction = steps[i].instructions;
-            const distance = steps[i].distance.text;
-            html += `<p>${instruction} (${distance})</p>`;
-        }
+    // function showTurns(response) {
+    //     const allCoordinates = [];
+    //     const selectedRoute = response.routes[0];
+    //     const steps = response.routes[0].legs[0].steps;
    
- // Accessing all coordinates along the entire track
-const selectedRoute = response.routes[0];
-const allCoordinates = [];
-selectedRoute.legs.forEach(leg => {
-    leg.steps.forEach(step => {
-        step.path.forEach(point => {
-            allCoordinates.push({
-                lat: point.lat(),
-                lng: point.lng()
+    //     selectedRoute.legs.forEach(leg => {
+    //         leg.steps.forEach(step => {
+    //             step.path.forEach(point => {
+    //                 allCoordinates.push({
+    //                     lat: point.lat(),
+    //                     lng: point.lng()
+    //                 });
+    //             });
+    //         });
+    //     });
+    
+    //     // Send allCoordinates to the server
+    //     fetch('http://localhost:8080/sendCoordinates', {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //         },
+    //         body: JSON.stringify({ coordinates: allCoordinates }),
+    //     })
+    //     .then(response => {
+    //         if (!response.ok) {
+    //             throw new Error('Failed to send coordinates to the server');
+    //         }
+    //         console.log('Coordinates sent successfully');
+    //     })
+    //     .catch(error => {
+    //         console.error('Error:', error);
+    //     });
+    
+    //     // Displaying directions in the UI
+    //     const directionsContainer = document.getElementById("directions-container");
+    //     let html = "";
+    //     for (let i = 0; i < steps.length; i++) {
+    //         const instruction = steps[i].instructions;
+    //         const distance = steps[i].distance.text;
+    //         html += `<p>${instruction} (${distance})</p>`;
+    //     }
+        
+    //     console.log(allCoordinates);
+    //     directionsContainer.innerHTML = html;
+       
+  
+
+    // }
+    function showTurns(response) {
+        const allCoordinates = [];
+        const selectedRoute = response.routes[0];
+        const steps = response.routes[0].legs[0].steps;
+    
+        selectedRoute.legs.forEach(leg => {
+            leg.steps.forEach(step => {
+                step.path.forEach(point => {
+                    allCoordinates.push({
+                        lat: point.lat(),
+                        lng: point.lng()
+                    });
+                });
             });
         });
-    });
-});
+    
+        // Send all coordinates to the server
+        fetch('http://localhost:8080/sendCoordinates', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ coordinates: allCoordinates }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to send coordinates to the server');
+            }
+            console.log('Coordinates sent successfully');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    
+       
+        const directionsContainer = document.getElementById("directions-container");
+        let html = "";
+        for (let i = 0; i < steps.length; i++) {
+            const instruction = steps[i].maneuver; // Get the direction word
+            const distance = steps[i].distance.value; // Get the distance in meters
+    
+            // Add the direction word and distance in meters to the HTML
+            html += `<p>${instruction} (${distance} meters)</p>`;
+        }
+   
 
-// Displaying all coordinates
+
 console.log(allCoordinates);
+directionsContainer.innerHTML = html;
 
+        console.log(allCoordinates);
         directionsContainer.innerHTML = html;
     }
     
-
+   
    
 
 
